@@ -11,7 +11,7 @@
 🎥 **Live Demo:** *[Add your link here]*  
 📂 **Clone & Run:**  
 ```sh
-git clone [https://github.com/yourusername/movie-explorer.git  ](https://github.com/biniyam-kefyalew/Movie-Explorer.git)
+git clone https://github.com/biniyam-kefyalew/Movie-Explorer.git
 cd movie-explorer  
 npm install  
 ng serve  
