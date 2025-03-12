@@ -1,0 +1,16 @@
+<div
+  class="bg-white h-full shadow-md rounded-lg overflow-hidden cursor-pointer transition-transform transform hover:scale-105"
+  [routerLink]="'/movie/' + movie.id"
+>
+  <img
+    [src]="'https://image.tmdb.org/t/p/w500' + movie.poster_path"
+    [alt]="movie.title"
+    class="w-full h-64 object-cover"
+  />
+  <div class="p-4">
+    <h3 class="text-lg font-semibold">{{ movie.title }}</h3>
+    <p class="text-gray-500">
+      {{ movie.release_date ? movie.release_date.split("-")[0] : "N/A" }}
+    </p>
+  </div>
+</div>

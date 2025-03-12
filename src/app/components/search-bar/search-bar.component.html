@@ -1,0 +1,8 @@
+<!-- Search Bar -->
+<input
+  type="text"
+  [(ngModel)]="searchQuery"
+  placeholder="Search movies..."
+  class="bg-gray-800 text-white p-2 rounded w-full focus:outline-none"
+  (keyup.enter)="onSearch()"
+/>
