@@ -7,8 +7,6 @@
 ✅ **Responsive Design** – Powered by Tailwind CSS for a seamless UI  
 
 📡 **Tech Stack:** Angular 17, TypeScript, RxJS, Tailwind CSS, TMDb API  
-
-🎥 **Live Demo:** *[Add your link here]*  
 📂 **Clone & Run:**  
 ```sh
 git clone https://github.com/biniyam-kefyalew/Movie-Explorer.git
