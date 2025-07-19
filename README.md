@@ -17,5 +17,5 @@ npm install
 ng serve  
 ```
 
-🌟 **Contributions welcome!** Fork, improve, and submit PRs!  
+🌟 **Contributions welcome!** Fork, improve, and submit PRs  
 
