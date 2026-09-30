@@ -1,0 +1,142 @@
+<div class="min-h-screen bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between pb-6 border-b border-gray-800">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">⏱️</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Watch History
+          </h1>
+          <span *ngIf="recentlyWatched.length > 0" class="text-xs bg-gray-800 text-gray-300 border border-gray-700 px-2.5 py-0.5 rounded-full font-semibold">
+            {{ recentlyWatched.length }} items
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-gray-400 mt-1">
+          Pick up right where you left off or review past watched titles.
+        </p>
+      </div>
+
+      <button
+        *ngIf="recentlyWatched.length > 0"
+        (click)="clearAll()"
+        class="text-xs text-gray-400 hover:text-red-400 hover:bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-lg transition-colors"
+      >
+        Clear History
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="recentlyWatched.length === 0" class="text-center py-24 bg-gray-900/30 rounded-2xl border border-gray-800/60 mt-8">
+      <span class="text-5xl">📼</span>
+      <h3 class="text-xl font-bold text-white mt-4">No watch history yet</h3>
+      <p class="text-xs sm:text-sm text-gray-400 mt-1 max-w-sm mx-auto">
+        When you watch legal streams or trailers on Movie Explorer, your playback positions will be saved automatically here.
+      </p>
+      <div class="mt-6 flex items-center justify-center gap-3">
+        <a routerLink="/free-movies" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition-colors">
+          Watch Free Movies
+        </a>
+        <a routerLink="/" class="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold text-xs transition-colors">
+          Browse Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Continue Watching Section -->
+    <div *ngIf="continueWatching.length > 0" class="mt-8">
+      <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+        Continue Watching
+      </h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div
+          *ngFor="let item of continueWatching"
+          [routerLink]="['/watch', item.movieId]"
+          class="bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-red-600/50 cursor-pointer group transition-all"
+        >
+          <div class="relative h-36 bg-gray-950">
+            <img
+              [src]="item.backdropUrl || item.posterUrl || 'assets/image/icon.png'"
+              [alt]="item.movieTitle"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <span class="p-3 bg-red-600 rounded-full text-white shadow-xl">▶ Resume</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-800">
+              <div
+                class="h-full bg-red-600"
+                [style.width.%]="(item.playbackPosition / item.duration) * 100"
+              ></div>
+            </div>
+          </div>
+
+          <div class="p-3.5 flex items-center justify-between">
+            <div>
+              <h4 class="text-xs sm:text-sm font-semibold text-white truncate max-w-[180px]">{{ item.movieTitle }}</h4>
+              <p class="text-[11px] text-gray-400 mt-0.5">
+                {{ formatTime(item.playbackPosition) }} / {{ formatTime(item.duration) }}
+              </p>
+            </div>
+            <button
+              (click)="removeItem(item.movieId, $event)"
+              title="Remove"
+              class="text-gray-500 hover:text-red-400 p-1 rounded-lg"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recently Watched List -->
+    <div *ngIf="recentlyWatched.length > 0" class="mt-12">
+      <h2 class="text-lg font-bold text-white mb-4">All Recently Watched</h2>
+
+      <div class="bg-gray-900/60 rounded-2xl border border-gray-800/80 divide-y divide-gray-800/80 overflow-hidden">
+        <div
+          *ngFor="let item of recentlyWatched"
+          [routerLink]="['/watch', item.movieId]"
+          class="p-4 flex items-center justify-between hover:bg-gray-800/40 transition-colors cursor-pointer group"
+        >
+          <div class="flex items-center gap-4">
+            <img
+              [src]="item.posterUrl || item.backdropUrl || 'assets/image/icon.png'"
+              [alt]="item.movieTitle"
+              class="w-12 h-16 object-cover rounded-lg bg-gray-950 flex-shrink-0 border border-gray-800"
+            />
+            <div>
+              <h4 class="text-sm font-bold text-white group-hover:text-red-400 transition-colors">
+                {{ item.movieTitle }}
+              </h4>
+              <div class="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                <span>{{ formatDate(item.lastWatchedTime) }}</span>
+                <span>•</span>
+                <span *ngIf="item.completed" class="text-emerald-400">Completed</span>
+                <span *ngIf="!item.completed">{{ formatTime(item.playbackPosition) }} watched</span>
+                <span *ngIf="item.sourceProvider" class="text-gray-500">({{ item.sourceProvider }})</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="text-xs bg-red-600/20 text-red-400 border border-red-600/30 px-3 py-1.5 rounded-lg group-hover:bg-red-600 group-hover:text-white transition-all">
+              Watch
+            </span>
+            <button
+              (click)="removeItem(item.movieId, $event)"
+              title="Remove from history"
+              class="p-2 text-gray-500 hover:text-red-400 rounded-lg transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

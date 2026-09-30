@@ -1,14 +1,196 @@
 <section
-  class="relative bg-cover bg-center text-white bg-gray-900 h-screen"
-  style="background-image: url('https://via.placeholder.com/1600x900')"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+  class="relative w-full min-h-[580px] md:min-h-[720px] flex items-center justify-start overflow-hidden bg-gray-950 group/hero"
 >
-  <div class="container mx-auto relative z-10 text-center pt-24">
-    <h1 class="text-4xl font-bold mb-4">Welcome to Movie Explorer</h1>
-    <p class="text-lg mb-6">Discover your next favorite movie</p>
-    <a
-      href="/search"
-      class="bg-blue-600 text-white py-2 px-6 rounded-lg text-lg"
-      >Explore Movies</a
+  <!-- Background Layer: High-Res Backdrop Image + Silent Background Video Trailer -->
+  <div class="absolute inset-0 overflow-hidden">
+    <!-- 1. Base Backdrop Image (Instant fallback & ambient layer) -->
+    <img
+      [src]="backdropUrl"
+      [alt]="currentMovie?.title || 'Featured Movie'"
+      class="w-full h-full object-cover object-center filter brightness-50 scale-105 transform transition-all duration-1000 ease-out"
+    />
+
+    <!-- 2. Ambient Silent Background Video Trailer (Plays trailer without sound) -->
+    <div
+      *ngIf="safeTrailerUrl"
+      class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-10"
     >
+      <iframe
+        [src]="safeTrailerUrl"
+        class="w-[140%] h-[140%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover pointer-events-none filter brightness-75"
+        title="Background Movie Trailer"
+        frameborder="0"
+        tabindex="-1"
+        allow="
+          accelerometer;
+          autoplay;
+          clipboard-write;
+          encrypted-media;
+          gyroscope;
+          picture-in-picture;
+        "
+      ></iframe>
+    </div>
+
+    <!-- 3. Cinematic Dark Gradient Overlays (ensures text readability over video) -->
+    <div
+      class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/60 to-transparent z-10 pointer-events-none"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/80 to-transparent z-10 pointer-events-none"
+    ></div>
+  </div>
+
+  <!-- Previous / Next Slide Arrows (Desktop Hover) -->
+  <div *ngIf="movies.length > 1" class="hidden sm:block">
+    <button
+      (click)="prevSlide()"
+      aria-label="Previous Slide"
+      class="absolute left-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-red-600 text-white backdrop-blur-md border border-white/10 opacity-0 group-hover/hero:opacity-100 transition-all transform hover:scale-110"
+    >
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2.5"
+          d="M15 19l-7-7 7-7"
+        />
+      </svg>
+    </button>
+    <button
+      (click)="nextSlide()"
+      aria-label="Next Slide"
+      class="absolute right-4 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-black/50 hover:bg-red-600 text-white backdrop-blur-md border border-white/10 opacity-0 group-hover/hero:opacity-100 transition-all transform hover:scale-110"
+    >
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2.5"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Content Container -->
+  <div
+    class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 w-full"
+  >
+    <div class="max-w-2xl space-y-4">
+      <!-- Top Pill / Slideshow Category -->
+      <div class="flex items-center gap-2">
+        <span
+          class="text-xs font-bold text-red-500 uppercase tracking-widest bg-red-950/60 border border-red-800/60 px-3 py-1 rounded-full backdrop-blur-md"
+        >
+          Spotlight Trailer ({{ currentIndex + 1 }}/{{ movies.length || 1 }})
+        </span>
+      </div>
+
+      <!-- Badges Row -->
+      <div class="flex items-center gap-2.5 flex-wrap pt-1">
+        <span
+          *ngIf="currentMovie?.freePlayable"
+          class="bg-emerald-600/90 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 backdrop-blur-md"
+        >
+          <span
+            class="w-2 h-2 rounded-full bg-emerald-200 animate-pulse"
+          ></span>
+          FREE LEGAL STREAM
+        </span>
+        <span
+          *ngIf="movieRating"
+          class="bg-black/60 backdrop-blur-md text-amber-400 text-xs font-bold px-2.5 py-1 rounded-lg border border-white/10 flex items-center gap-1"
+        >
+          <span>⭐</span> {{ movieRating }} / 10
+        </span>
+        <span
+          *ngIf="movieYear"
+          class="text-xs text-gray-300 font-medium px-2 py-1 bg-white/10 backdrop-blur-md rounded-lg"
+        >
+          {{ movieYear }}
+        </span>
+        <span
+          *ngFor="let g of (currentMovie?.genres || []).slice(0, 3)"
+          class="text-xs text-gray-300 px-2 py-1 bg-white/5 backdrop-blur-md rounded-lg border border-white/5"
+        >
+          {{ g.name }}
+        </span>
+      </div>
+
+      <!-- Title -->
+      <h1
+        class="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-tight line-clamp-2 drop-shadow-md"
+      >
+        {{ currentMovie?.title || "Discover Great Cinema" }}
+      </h1>
+
+      <!-- Overview -->
+      <p
+        class="text-sm md:text-base text-gray-300 leading-relaxed line-clamp-3 md:line-clamp-4 max-w-xl drop-shadow"
+      >
+        {{
+          currentMovie?.overview ||
+            "Explore trending movies, classic public domain cinema, and verified streaming sources all in one modern platform."
+        }}
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="pt-4 flex items-center gap-3.5 flex-wrap">
+        <!-- Watch Now Button -->
+        <a
+          *ngIf="currentMovie"
+          [routerLink]="currentMovie.freePlayable ? watchLink : detailLink"
+          class="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm md:text-base flex items-center gap-2 shadow-xl shadow-red-900/40 transform hover:-translate-y-0.5 transition-all"
+        >
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <span>{{
+            currentMovie.freePlayable
+              ? "Watch Free Now"
+              : "Watch Trailer & Details"
+          }}</span>
+        </a>
+
+        <!-- More Details Button -->
+        <a
+          *ngIf="currentMovie"
+          [routerLink]="detailLink"
+          class="px-5 py-3 rounded-xl bg-gray-900/80 hover:bg-gray-800 text-gray-200 font-semibold text-sm md:text-base border border-gray-700/80 backdrop-blur-md flex items-center gap-2 transform hover:-translate-y-0.5 transition-all"
+        >
+          <span>Details</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slideshow Dots / Indicators (Bottom Center) -->
+  <div
+    *ngIf="movies.length > 1"
+    class="absolute bottom-6 left-0 right-0 z-30 flex items-center justify-center gap-2"
+  >
+    <button
+      *ngFor="let m of movies; let idx = index"
+      (click)="goToSlide(idx)"
+      [attr.aria-label]="'Go to slide ' + (idx + 1)"
+      class="h-1.5 rounded-full transition-all duration-300"
+      [ngClass]="{
+        'w-8 bg-red-600 shadow-md shadow-red-900/50': idx === currentIndex,
+        'w-2 bg-white/30 hover:bg-white/60': idx !== currentIndex,
+      }"
+    ></button>
   </div>
 </section>

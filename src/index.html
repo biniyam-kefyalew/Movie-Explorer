@@ -1,13 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
-    <title>MovieSearchApp</title>
+    <title>Movie Explorer — Discover Movies & Legal Free Streaming</title>
     <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="./assets/image/icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Discover movies, search trending cinema, explore cast and trailers, and stream verified public domain classics legally via Internet Archive." />
+    <meta name="keywords" content="movies, streaming, public domain movies, free movies, legal streaming, movie explorer, film trailers, TMDB, internet archive" />
+    <meta name="author" content="Movie Explorer" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Movie Explorer — Discover & Stream Movies Legally" />
+    <meta property="og:description" content="Cinematic movie discovery, smart source resolution, official trailers, and legal public domain streaming." />
+    <meta property="og:image" content="./assets/image/icon.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Movie Explorer" />
+    <meta name="twitter:description" content="Cinematic movie discovery and legal free streaming." />
+    <meta name="twitter:image" content="./assets/image/icon.png" />
+
+    <link rel="icon" type="image/png" href="./assets/image/icon.png" />
+    <link rel="preconnect" href="https://image.tmdb.org" />
+    <link rel="preconnect" href="https://archive.org" />
+    <link rel="preconnect" href="https://www.youtube-nocookie.com" />
   </head>
-  <body>
+  <body class="bg-gray-950 text-gray-100 antialiased selection:bg-red-600 selection:text-white">
     <app-root></app-root>
   </body>
 </html>

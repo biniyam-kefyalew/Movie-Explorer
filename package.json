@@ -4,9 +4,12 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "server": "tsx server/server.ts",
+    "dev": "tsx server/server.ts",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:server": "tsx --test server/tests/*.test.ts",
     "lint": "ng lint"
   },
   "private": true,
@@ -19,6 +22,9 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@tailwindcss/postcss": "^4.0.13",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
     "postcss": "^8.5.3",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.0.13",
@@ -29,6 +35,8 @@
     "@angular-devkit/build-angular": "^19.2.1",
     "@angular/cli": "^19.2.1",
     "@angular/compiler-cli": "^19.2.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/jasmine": "~5.1.0",
     "angular-eslint": "19.2.1",
     "eslint": "^9.22.0",
@@ -39,6 +47,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "lightningcss": "^1.29.2",
+    "tsx": "^4.23.15",
     "typescript": "~5.7.2",
     "typescript-eslint": "8.26.0"
   }

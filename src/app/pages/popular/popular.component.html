@@ -1,10 +1,37 @@
-<div class="container mx-auto p-4">
-  <div
-    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6"
-  >
-    <app-movie-card
-      *ngFor="let movie of movies"
-      [movie]="movie"
-    ></app-movie-card>
+<div class="min-h-screen bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="pb-6 border-b border-gray-800">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">⭐</span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          Popular Movies
+        </h1>
+      </div>
+      <p class="text-xs sm:text-sm text-gray-400 mt-1">
+        Most popular movies loved by viewers across all streaming services and theaters.
+      </p>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div *ngIf="isLoading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 mt-8">
+      <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12]" class="aspect-[2/3] rounded-xl bg-gray-900 animate-pulse border border-gray-800"></div>
+    </div>
+
+    <!-- Movies Grid -->
+    <div *ngIf="!isLoading && movies.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 mt-8">
+      <app-movie-card *ngFor="let movie of movies" [movie]="movie"></app-movie-card>
+    </div>
+
+    <!-- Load More -->
+    <div *ngIf="!isLoading && page < totalPages" class="text-center mt-12">
+      <button
+        (click)="loadMore()"
+        [disabled]="isLoadingMore"
+        class="px-8 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm border border-gray-700/80 transition-all flex items-center gap-2 mx-auto disabled:opacity-50"
+      >
+        <span *ngIf="isLoadingMore" class="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+        <span>{{ isLoadingMore ? 'Loading More...' : 'Load More Movies' }}</span>
+      </button>
+    </div>
   </div>
 </div>

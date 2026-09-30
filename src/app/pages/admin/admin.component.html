@@ -1,0 +1,360 @@
+<div class="min-h-screen bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- 1. UNAUTHENTICATED STATE: Admin Login Card -->
+    <div *ngIf="!isAuthenticated" class="max-w-md mx-auto my-12">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-red-950/60 border border-red-800/80 text-2xl mb-3 shadow-inner">
+            🔒
+          </div>
+          <h1 class="text-2xl font-extrabold text-white tracking-tight">Security Gateway</h1>
+          <p class="text-xs text-gray-400 mt-1">
+            Sign in with authorized access credentials to manage content and streaming sources.
+          </p>
+        </div>
+
+        <!-- Login Error Alert -->
+        <div *ngIf="loginError" class="mb-5 p-3 rounded-xl bg-red-950/70 border border-red-800 text-red-300 text-xs font-semibold flex items-center justify-between">
+          <span>⚠ {{ loginError }}</span>
+          <button (click)="loginError = null" class="text-red-400 hover:text-white">✕</button>
+        </div>
+
+        <form (ngSubmit)="onLogin()" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Username</label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="loginUsername"
+                name="username"
+                required
+                autocomplete="username"
+                placeholder="Username"
+                class="w-full bg-gray-950 border border-gray-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1.5">Password</label>
+            <div class="relative">
+              <input
+                type="password"
+                [(ngModel)]="loginPassword"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••••••"
+                class="w-full bg-gray-950 border border-gray-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-red-500 focus:outline-none transition-colors"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="isLoggingIn"
+            class="w-full mt-2 py-3 px-4 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-sm tracking-wide shadow-lg shadow-red-950/50 transition-all flex items-center justify-center gap-2"
+          >
+            <span *ngIf="isLoggingIn" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ isLoggingIn ? 'Authenticating...' : 'Sign In to Gateway' }}</span>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-gray-800 text-center">
+          <a routerLink="/" class="text-xs text-gray-500 hover:text-red-400 transition-colors">
+            ← Return to Movie Explorer
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. AUTHENTICATED STATE: Management Dashboard -->
+    <div *ngIf="isAuthenticated">
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-gray-800 gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🛡️</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Legal Source Management
+            </h1>
+            <span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1 rounded-full font-semibold flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Verified Session
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-gray-400 mt-1">
+            Review, approve, disable, or add manually verified legal and public domain video sources.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button
+            (click)="showAddForm = !showAddForm"
+            class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm transition-colors flex items-center gap-2 shadow-lg shadow-red-950/40"
+          >
+            <span>{{ showAddForm ? '✕ Close Form' : '+ Add Legal Source' }}</span>
+          </button>
+
+          <!-- Logout Button -->
+          <button
+            (click)="onLogout()"
+            title="Sign out of admin session"
+            class="px-3.5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white font-semibold text-xs transition-colors flex items-center gap-1.5"
+          >
+            <span>Logout</span>
+            <span>🚪</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Alert Messages -->
+      <div *ngIf="successMessage" class="mt-4 p-4 rounded-xl bg-emerald-950/60 border border-emerald-800 text-emerald-300 text-xs font-semibold flex items-center justify-between">
+        <span>✓ {{ successMessage }}</span>
+        <button (click)="successMessage = null">✕</button>
+      </div>
+
+      <div *ngIf="errorMessage" class="mt-4 p-4 rounded-xl bg-red-950/60 border border-red-800 text-red-300 text-xs font-semibold flex items-center justify-between">
+        <span>⚠ {{ errorMessage }}</span>
+        <button (click)="errorMessage = null">✕</button>
+      </div>
+
+      <!-- Add Legal Source Form Drawer -->
+      <div *ngIf="showAddForm" class="mt-6 p-6 rounded-2xl bg-gray-900 border border-gray-800 shadow-2xl">
+        <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+          <span>➕</span> Add Manually Verified Legal Stream
+        </h3>
+
+        <form (ngSubmit)="submitNewSource()" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Movie Title *</label>
+            <input
+              type="text"
+              [(ngModel)]="formData.title"
+              name="title"
+              required
+              placeholder="e.g. Night of the Living Dead"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">TMDB Movie ID *</label>
+            <input
+              type="number"
+              [(ngModel)]="formData.tmdbId"
+              name="tmdbId"
+              required
+              placeholder="e.g. 10331"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Release Year</label>
+            <input
+              type="number"
+              [(ngModel)]="formData.year"
+              name="year"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Provider *</label>
+            <select
+              [(ngModel)]="formData.sourceProvider"
+              name="sourceProvider"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            >
+              <option value="internet_archive">Internet Archive</option>
+              <option value="youtube">YouTube</option>
+              <option value="vimeo">Vimeo</option>
+              <option value="manual_verified">Manual Verified Partner</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Playback Type</label>
+            <select
+              [(ngModel)]="formData.playbackType"
+              name="playbackType"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            >
+              <option value="direct">Direct Stream (MP4/HLS)</option>
+              <option value="youtube_embed">YouTube Embed</option>
+              <option value="vimeo_embed">Vimeo Embed</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Category</label>
+            <select
+              [(ngModel)]="formData.category"
+              name="category"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            >
+              <option value="full_movie">Full Movie</option>
+              <option value="trailer">Official Trailer</option>
+              <option value="clip">Clip / Featurette</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-gray-400 font-semibold mb-1">Playback URL * (HTTPS)</label>
+            <input
+              type="url"
+              [(ngModel)]="formData.playbackUrl"
+              name="playbackUrl"
+              required
+              placeholder="https://archive.org/download/..."
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Quality</label>
+            <input
+              type="text"
+              [(ngModel)]="formData.quality"
+              name="quality"
+              placeholder="1080p, 720p, 480p"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">License</label>
+            <input
+              type="text"
+              [(ngModel)]="formData.license"
+              name="license"
+              placeholder="Public Domain, Creative Commons"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-gray-400 font-semibold mb-1">Attribution / Curator</label>
+            <input
+              type="text"
+              [(ngModel)]="formData.attribution"
+              name="attribution"
+              placeholder="Internet Archive, Partner Studio"
+              class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+            />
+          </div>
+
+          <div class="flex items-center gap-2 mt-5">
+            <input
+              type="checkbox"
+              id="approved"
+              [(ngModel)]="formData.approved"
+              name="approved"
+              class="rounded bg-gray-950 border-gray-700 text-red-600 focus:ring-red-600"
+            />
+            <label for="approved" class="text-gray-300 font-medium cursor-pointer">Immediately Approved</label>
+          </div>
+
+          <div class="sm:col-span-3 pt-3 flex justify-end gap-3 border-t border-gray-800">
+            <button
+              type="button"
+              (click)="showAddForm = false"
+              class="px-4 py-2 rounded-xl bg-gray-800 text-gray-300 hover:text-white font-semibold transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSubmitting"
+              class="px-6 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <span *ngIf="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <span>{{ isSubmitting ? 'Verifying & Saving...' : 'Save Legal Source' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="py-20 text-center">
+        <div class="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="text-xs text-gray-400 mt-3">Loading verified sources...</p>
+      </div>
+
+      <!-- Sources Table -->
+      <div *ngIf="!isLoading" class="mt-8 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+          <div class="text-xs text-gray-400">
+            Total Sources: <strong class="text-white">{{ sources.length }}</strong>
+          </div>
+          <button (click)="loadSources()" class="text-xs text-red-500 hover:text-red-400 font-semibold flex items-center gap-1">
+            <span>↻ Refresh</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-300">
+            <thead class="bg-gray-950/80 text-gray-400 font-semibold uppercase tracking-wider border-b border-gray-800">
+              <tr>
+                <th class="py-3.5 px-4">Title & TMDB ID</th>
+                <th class="py-3.5 px-4">Provider & Type</th>
+                <th class="py-3.5 px-4">Quality & License</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800/80">
+              <tr *ngFor="let s of sources" class="hover:bg-gray-800/40 transition-colors">
+                <td class="py-3.5 px-4">
+                  <div class="font-bold text-white">{{ s.title }}</div>
+                  <div class="text-[11px] text-gray-500 font-mono">TMDB: {{ s.movieId }}</div>
+                </td>
+                <td class="py-3.5 px-4">
+                  <span class="capitalize">{{ s.provider.replace('_', ' ') }}</span>
+                  <div class="text-[11px] text-gray-400 font-mono">{{ s.playbackType }} • {{ s.category }}</div>
+                </td>
+                <td class="py-3.5 px-4">
+                  <div>{{ s.quality || 'N/A' }}</div>
+                  <div class="text-[11px] text-emerald-400 font-medium">{{ s.license || 'Public Domain' }}</div>
+                </td>
+                <td class="py-3.5 px-4">
+                  <button
+                    (click)="toggleApproval(s)"
+                    [class]="s.approved ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-red-950 text-red-300 border border-red-800'"
+                    class="px-2.5 py-1 rounded-full font-semibold text-[10px] uppercase tracking-wider hover:opacity-80 transition-opacity"
+                    [title]="s.approved ? 'Click to disable' : 'Click to approve'"
+                  >
+                    {{ s.approved ? 'Approved' : 'Disabled' }}
+                  </button>
+                </td>
+                <td class="py-3.5 px-4 text-right space-x-2">
+                  <a
+                    [href]="s.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-blue-400 hover:text-blue-300 text-[11px] font-semibold"
+                  >
+                    Inspect ↗
+                  </a>
+                  <button
+                    (click)="deleteSource(s.id)"
+                    class="text-red-500 hover:text-red-400 text-[11px] font-semibold"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="sources.length === 0">
+                <td colspan="5" class="py-8 text-center text-gray-500">
+                  No verified sources found. Add your first legal source above.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

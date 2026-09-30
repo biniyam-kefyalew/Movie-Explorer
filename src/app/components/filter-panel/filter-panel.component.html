@@ -1,0 +1,142 @@
+<!-- Backdrop overlay -->
+<div
+  *ngIf="isOpen"
+  (click)="onClose()"
+  class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-opacity animate-in fade-in duration-200"
+></div>
+
+<!-- Drawer / Modal -->
+<div
+  *ngIf="isOpen"
+  class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-gray-950 border-l border-gray-800 z-50 shadow-2xl p-6 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300"
+>
+  <div>
+    <!-- Header -->
+    <div
+      class="flex items-center justify-between pb-4 border-b border-gray-800"
+    >
+      <div class="flex items-center gap-2">
+        <span class="text-xl">⚙️</span>
+        <h3 class="text-lg font-bold text-white">Filter & Sort Movies</h3>
+      </div>
+      <button
+        (click)="onClose()"
+        class="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+      >
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Filter Form Fields -->
+    <div class="mt-6 space-y-6 text-sm">
+      <!-- Free Playable Only Toggle -->
+      <div
+        class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-800/40 flex items-center justify-between"
+      >
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" [(ngModel)]="freeOnly" class="sr-only peer" />
+          <div
+            class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"
+          ></div>
+        </label>
+      </div>
+
+      <!-- Sort By -->
+      <div>
+        <label
+          class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2"
+          >Sort By</label
+        >
+        <select
+          [(ngModel)]="selectedSort"
+          class="w-full bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2.5 focus:border-red-500 focus:outline-none"
+        >
+          <option *ngFor="let opt of sortOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Genre -->
+      <div>
+        <label
+          class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2"
+          >Genre</label
+        >
+        <select
+          [(ngModel)]="selectedGenre"
+          class="w-full bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2.5 focus:border-red-500 focus:outline-none"
+        >
+          <option value="">All Genres</option>
+          <option *ngFor="let g of genres" [value]="g.id">{{ g.name }}</option>
+        </select>
+      </div>
+
+      <!-- Release Year -->
+      <div>
+        <label
+          class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2"
+          >Release Year</label
+        >
+        <select
+          [(ngModel)]="selectedYear"
+          class="w-full bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded-xl px-3 py-2.5 focus:border-red-500 focus:outline-none"
+        >
+          <option value="">All Years</option>
+          <option *ngFor="let y of years" [value]="y">{{ y }}</option>
+        </select>
+      </div>
+
+      <!-- Rating Range -->
+      <div>
+        <div class="flex justify-between items-center mb-2">
+          <label
+            class="block text-xs font-semibold text-gray-300 uppercase tracking-wider"
+            >Minimum Rating</label
+          >
+          <span class="text-xs font-bold text-amber-400"
+            >⭐ {{ minRating }} / 10</span
+          >
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="10"
+          step="0.5"
+          [(ngModel)]="minRating"
+          class="w-full accent-red-600 cursor-pointer"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="pt-6 border-t border-gray-800 flex items-center gap-3">
+    <button
+      (click)="resetFilters()"
+      type="button"
+      class="flex-1 py-2.5 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 text-sm font-medium transition-colors"
+    >
+      Reset
+    </button>
+    <button
+      (click)="applyFilters()"
+      type="button"
+      class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors shadow-lg shadow-red-900/30"
+    >
+      Apply Filters
+    </button>
+  </div>
+</div>

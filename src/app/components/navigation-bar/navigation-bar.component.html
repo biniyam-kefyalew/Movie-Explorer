@@ -1,94 +1,337 @@
-<nav
-  class="bg-gray-900 fixed top-0 left-0 w-full z-50 text-white p-2 md:p-4 shadow-l flex justify-between gap-4 items-centerg"
->
-  <!-- Logo -->
-  <a routerLink="/" class="text-9xl md:text-2xl font-bold md:mr-6"
-    >🎬 Movie Explorer</a
-  >
+<!-- Desktop & Tablet Header -->
+<header class="fixed top-0 left-0 right-0 z-50 glass-nav transition-all">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 gap-3 md:gap-6">
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center gap-2 flex-shrink-0 group">
+        <span
+          class="text-2xl transform group-hover:rotate-12 transition-transform duration-300"
+          >🎬</span
+        >
+        <span
+          class="text-lg md:text-xl font-extrabold tracking-tight text-white group-hover:text-red-500 transition-colors"
+        >
+          Movie<span class="text-red-600">Explorer</span>
+        </span>
+      </a>
 
-  <!-- Search Bar -->
-  <div class="flex-grow flex-shrink">
-    <app-search-bar class="w-full"></app-search-bar>
+      <!-- Desktop Nav Links -->
+      <nav
+        class="hidden xl:flex items-center gap-1 text-sm font-medium text-gray-300"
+      >
+        <a
+          routerLink="/"
+          routerLinkActive="text-red-500 bg-red-950/30"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors"
+        >
+          Home
+        </a>
+        <a
+          routerLink="/latest"
+          routerLinkActive="text-red-500 bg-red-950/30"
+          class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors"
+        >
+          Latest
+        </a>
+        <a
+          routerLink="/trending"
+          routerLinkActive="text-red-500 bg-red-950/30"
+          class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors"
+        >
+          Trending
+        </a>
+        <a
+          routerLink="/popular"
+          routerLinkActive="text-red-500 bg-red-950/30"
+          class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors"
+        >
+          Popular
+        </a>
+
+        <a
+          routerLink="/top-rated"
+          routerLinkActive="text-red-500 bg-red-950/30"
+          class="px-3 py-1.5 rounded-lg hover:text-white hover:bg-gray-800/60 transition-colors"
+        >
+          Top Rated
+        </a>
+      </nav>
+
+      <!-- Global Search Bar -->
+      <div class="flex-grow max-w-md mx-2">
+        <app-search-bar></app-search-bar>
+      </div>
+
+      <!-- Action Buttons (Favorites, History) -->
+      <div class="hidden md:flex items-center gap-2">
+        <!-- Favorites -->
+        <a
+          routerLink="/favorites"
+          routerLinkActive="text-red-500 bg-gray-800"
+          title="Watchlist / Favorites"
+          class="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/80 transition-colors"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+          </svg>
+          <span
+            *ngIf="(favoritesService.favorites$ | async)?.length as favCount"
+            class="absolute -top-1 -right-1 bg-red-600 text-[10px] font-bold text-white w-4 h-4 rounded-full flex items-center justify-center"
+          >
+            {{ favCount }}
+          </span>
+        </a>
+
+        <!-- History -->
+        <a
+          routerLink="/history"
+          routerLinkActive="text-red-500 bg-gray-800"
+          title="Watch History"
+          class="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800/80 transition-colors"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button
+        (click)="toggleMenu()"
+        type="button"
+        class="xl:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 focus:outline-none"
+        aria-label="Toggle Navigation Menu"
+      >
+        <svg
+          *ngIf="!menuOpen"
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+        <svg
+          *ngIf="menuOpen"
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
-  <!-- Navigation Links -->
-  <ul class="hidden md:flex flex-row gap-2 items-center">
-    <li>
+
+  <!-- Mobile Drawer / Dropdown -->
+  <div
+    *ngIf="menuOpen"
+    class="xl:hidden bg-gray-950/95 border-b border-gray-800 backdrop-blur-2xl px-4 pt-2 pb-6 space-y-2 animate-in slide-in-from-top duration-200"
+  >
+    <div class="grid grid-cols-2 gap-2 text-sm font-medium">
+      <a
+        routerLink="/"
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
+      >
+        <span>🏠</span> Home
+      </a>
       <a
         routerLink="/latest"
-        class="nav-link px-4 py-2 rounded-md hover:bg-gray-800"
-        >Latest</a
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
       >
-    </li>
-    <li>
+        <span>🆕</span> Latest
+      </a>
+      <a
+        routerLink="/trending"
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
+      >
+        <span>🔥</span> Trending
+      </a>
       <a
         routerLink="/popular"
-        class="nav-link px-4 py-2 rounded-md hover:bg-gray-800"
-        >Popular</a
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
       >
-    </li>
-
-    <li>
+        <span>⭐</span> Popular
+      </a>
       <a
         routerLink="/top-rated"
-        class="nav-link px-4 py-2 rounded-md hover:bg-gray-800"
-        >Top Rated</a
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
       >
-    </li>
-    <li>
-      <a
-        routerLink="/upcoming"
-        class="nav-link px-4 py-2 rounded-md hover:bg-gray-800"
-        >Upcoming</a
-      >
-    </li>
-  </ul>
-  <!-- Hamburger Menu (Mobile) -->
-  <button
-    class="md:hidden text-white focus:outline-none"
-    (click)="toggleMenu()"
-  >
-    ☰
-  </button>
-
-  <!-- Navigation Links -->
-  <ul
-    class="flex flex-col md:flex-row gap-4 p-4 md:p-0 absolute md:static bg-gray-900 md:bg-transparent w-full md:w-auto left-0 top-14 md:top-auto md:items-center transition-all duration-300"
-    [class.hidden]="!menuOpen"
-  >
-    <li>
-      <a
-        routerLink="/latest"
-        class="nav-link px-4 py-2 rounded-md block md:inline-block hover:bg-gray-800"
-        >Latest</a
-      >
-    </li>
-    <li>
-      <a
-        routerLink="/popular"
-        class="nav-link px-4 py-2 rounded-md block md:inline-block hover:bg-gray-800"
-        >Popular</a
-      >
-    </li>
-    <li>
+        <span>🏆</span> Top Rated
+      </a>
       <a
         routerLink="/now-playing"
-        class="nav-link px-4 py-2 rounded-md block md:inline-block hover:bg-gray-800"
-        >Now Playing</a
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
       >
-    </li>
-    <li>
-      <a
-        routerLink="/top-rated"
-        class="nav-link px-4 py-2 rounded-md block md:inline-block hover:bg-gray-800"
-        >Top Rated</a
-      >
-    </li>
-    <li>
+        <span>🍿</span> Now Playing
+      </a>
       <a
         routerLink="/upcoming"
-        class="nav-link px-4 py-2 rounded-md block md:inline-block hover:bg-gray-800"
-        >Upcoming</a
+        (click)="closeMenu()"
+        routerLinkActive="text-red-500 bg-gray-900"
+        class="p-2.5 rounded-lg text-gray-300 hover:bg-gray-900 flex items-center gap-2"
       >
-    </li>
-  </ul>
+        <span>📅</span> Upcoming
+      </a>
+    </div>
+
+    <div
+      class="border-t border-gray-800/80 pt-3 flex items-center justify-between"
+    >
+      <div class="flex items-center gap-4 text-sm text-gray-300">
+        <a
+          routerLink="/favorites"
+          (click)="closeMenu()"
+          class="flex items-center gap-1.5 hover:text-red-400"
+        >
+          <svg
+            class="w-4 h-4 text-red-500"
+            fill="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"
+            />
+          </svg>
+          Favorites
+        </a>
+        <a
+          routerLink="/history"
+          (click)="closeMenu()"
+          class="flex items-center gap-1.5 hover:text-white"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          History
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Bottom Navigation Bar (Appears on small screens) -->
+<nav
+  class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-950/95 backdrop-blur-lg border-t border-gray-800/80 px-4 py-2 flex items-center justify-around text-[10px] text-gray-400"
+>
+  <a
+    routerLink="/"
+    routerLinkActive="text-red-500 font-semibold"
+    [routerLinkActiveOptions]="{ exact: true }"
+    class="flex flex-col items-center gap-1 py-1"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+      />
+    </svg>
+    <span>Home</span>
+  </a>
+
+  <a
+    routerLink="/latest"
+    routerLinkActive="text-red-500 font-semibold"
+    class="flex flex-col items-center gap-1 py-1"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+      />
+    </svg>
+    <span>Latest</span>
+  </a>
+
+
+  <a
+    routerLink="/favorites"
+    routerLinkActive="text-red-500 font-semibold"
+    class="flex flex-col items-center gap-1 py-1"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+      />
+    </svg>
+    <span>Saved</span>
+  </a>
+
+  <a
+    routerLink="/history"
+    routerLinkActive="text-red-500 font-semibold"
+    class="flex flex-col items-center gap-1 py-1"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+    <span>History</span>
+  </a>
 </nav>

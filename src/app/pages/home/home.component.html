@@ -1,4 +1,132 @@
-<app-hero-section></app-hero-section>
-<app-features-section></app-features-section>
-<app-trending-movies></app-trending-movies>
-<app-footer></app-footer>
+<div class="min-h-screen bg-gray-950 pb-16">
+  <!-- Cinematic Hero Section -->
+  <app-hero-section [movies]="heroMovies"></app-hero-section>
+
+  <div class="space-y-6 -mt-10 relative z-20">
+    <!-- Continue Watching Row (If user has watched in-progress content) -->
+    <section *ngIf="continueWatching.length > 0" class="my-6 px-4 md:px-8">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⏱️</span>
+          <h2 class="text-lg md:text-xl font-bold text-white tracking-wide">
+            Continue Watching
+          </h2>
+        </div>
+        <a routerLink="/history" class="text-xs text-red-500 hover:text-red-400"
+          >View history →</a
+        >
+      </div>
+
+      <div class="flex gap-4 overflow-x-auto no-scrollbar py-2">
+        <div
+          *ngFor="let item of continueWatching"
+          [routerLink]="['/watch', item.movieId]"
+          class="flex-shrink-0 w-64 bg-gray-900 rounded-xl overflow-hidden border border-gray-800 hover:border-red-600/50 cursor-pointer group transition-all"
+        >
+          <div class="relative h-32 bg-gray-950">
+            <img
+              [src]="
+                item.backdropUrl || item.posterUrl || 'assets/image/icon.png'
+              "
+              [alt]="item.movieTitle"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
+            <div
+              class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <span class="p-3 bg-red-600 rounded-full text-white shadow-lg"
+                >▶</span
+              >
+            </div>
+            <!-- Progress Bar -->
+            <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-800">
+              <div
+                class="h-full bg-red-600"
+                [style.width.%]="(item.playbackPosition / item.duration) * 100"
+              ></div>
+            </div>
+          </div>
+          <div class="p-2.5">
+            <h4 class="text-xs font-semibold text-white truncate">
+              {{ item.movieTitle }}
+            </h4>
+            <p class="text-[11px] text-gray-400 mt-0.5">
+              {{ formatTime(item.playbackPosition) }} /
+              {{ formatTime(item.duration) }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🟢 Verified Free to Watch Movies (Internet Archive) -->
+    <app-movie-slider
+      title="Free to Stream"
+      subtitle="Legally verified full movies from public domain & open archives"
+      viewAllLink="/free-movies"
+      icon="🟢"
+      [movies]="freeMovies"
+      [loading]="loadingFree"
+    ></app-movie-slider>
+
+    <!-- Trending Now -->
+    <app-movie-slider
+      title="Trending Today"
+      subtitle="The most popular movies trending right now"
+      viewAllLink="/trending"
+      icon="🔥"
+      [movies]="trendingMovies"
+      [loading]="loadingTrending"
+    ></app-movie-slider>
+
+    <!-- Latest Releases -->
+    <app-movie-slider
+      title="Latest Releases"
+      subtitle="Recently released films in theaters and streaming"
+      viewAllLink="/latest"
+      icon="🆕"
+      [movies]="latestMovies"
+      [loading]="loadingLatest"
+    ></app-movie-slider>
+
+    <!-- Popular Movies -->
+    <app-movie-slider
+      title="Popular Across All Platforms"
+      subtitle="Critically and commercially acclaimed titles"
+      viewAllLink="/popular"
+      icon="⭐"
+      [movies]="popularMovies"
+      [loading]="loadingPopular"
+    ></app-movie-slider>
+
+    <!-- Top Rated -->
+    <app-movie-slider
+      title="Top Rated All Time"
+      subtitle="Highest rated cinema by audiences worldwide"
+      viewAllLink="/top-rated"
+      icon="🏆"
+      [movies]="topRatedMovies"
+      [loading]="loadingTopRated"
+    ></app-movie-slider>
+
+    <!-- Now Playing -->
+    <app-movie-slider
+      *ngIf="nowPlayingMovies.length > 0"
+      title="Now In Theaters"
+      subtitle="Currently showing on the big screen"
+      viewAllLink="/now-playing"
+      icon="🍿"
+      [movies]="nowPlayingMovies"
+    ></app-movie-slider>
+
+    <!-- Upcoming -->
+    <app-movie-slider
+      *ngIf="upcomingMovies.length > 0"
+      title="Anticipated & Upcoming"
+      subtitle="Coming soon to cinemas and home video"
+      viewAllLink="/upcoming"
+      icon="📅"
+      [movies]="upcomingMovies"
+    ></app-movie-slider>
+  </div>
+</div>

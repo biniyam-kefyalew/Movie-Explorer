@@ -1,0 +1,250 @@
+<div class="min-h-screen bg-black text-gray-100 flex flex-col">
+  <!-- Top Navigation Bar inside Watch Page -->
+  <header class="bg-gray-950/80 backdrop-blur-md border-b border-gray-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+      <button
+        (click)="goBack()"
+        class="flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-400 hover:text-white transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Back to Movie</span>
+      </button>
+
+      <span class="text-gray-600 hidden sm:inline">•</span>
+
+      <h1 *ngIf="movie" class="text-sm sm:text-base font-bold text-white truncate max-w-xs sm:max-w-md">
+        {{ movie.title }}
+        <span *ngIf="movie.year" class="text-xs text-gray-400 font-normal">({{ movie.year }})</span>
+      </h1>
+    </div>
+
+  </header>
+
+  <!-- Resume Watching Banner -->
+  <div
+    *ngIf="showResumeBanner"
+    class="bg-red-950/80 border-b border-red-800/60 px-4 py-2.5 flex items-center justify-between gap-4 text-xs sm:text-sm"
+  >
+    <div class="flex items-center gap-2 text-red-200">
+      <span>⏱️</span>
+      <span>
+        You previously watched this movie up to <strong>{{ formatTime(savedResumePosition) }}</strong>. Would you like to resume?
+      </span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button
+        (click)="resumePlayback()"
+        class="px-3 py-1 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg text-xs transition-colors"
+      >
+        Resume
+      </button>
+      <button
+        (click)="dismissResume()"
+        class="px-2.5 py-1 text-gray-400 hover:text-white text-xs transition-colors"
+      >
+        Dismiss
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex-grow flex flex-col items-center justify-center p-12">
+    <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-sm text-gray-400 mt-4">Connecting to verified legal playback source...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && errorMessage" class="flex-grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto">
+    <div class="text-4xl mb-3">⚠️</div>
+    <h3 class="text-lg font-bold text-white">{{ errorMessage }}</h3>
+    <p class="text-xs text-gray-400 mt-2">
+      A legal playback stream is currently unavailable for this title. You can check streaming availability or return to details.
+    </p>
+    <button
+      (click)="goBack()"
+      class="mt-5 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition-all"
+    >
+      Return to Movie Details
+    </button>
+  </div>
+
+  <!-- Video Player Main Viewport -->
+  <main *ngIf="!isLoading && !errorMessage" class="flex-grow flex flex-col bg-black">
+    <div class="w-full max-w-6xl mx-auto px-0 sm:px-4 lg:px-8 py-0 sm:py-6">
+      <div
+        #playerContainer
+        (mousemove)="onMouseMove()"
+        (mouseleave)="showControls = false"
+        class="relative aspect-video w-full bg-black sm:rounded-2xl overflow-hidden shadow-2xl border border-gray-900 group"
+      >
+        <!-- 1. Direct Playback: HTML5 Video -->
+        <ng-container *ngIf="activeSource?.playbackType === 'direct'">
+          <video
+            #videoPlayer
+            [src]="activeSource?.url"
+            (timeupdate)="onTimeUpdate()"
+            (loadedmetadata)="onLoadedMetadata()"
+            (play)="onVideoPlay()"
+            (pause)="onVideoPause()"
+            (ended)="onVideoEnded()"
+            (click)="togglePlay()"
+            class="w-full h-full object-contain cursor-pointer"
+            playsinline
+          ></video>
+
+          <!-- Custom Player Overlay Controls -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/30 flex flex-col justify-between p-4 transition-opacity duration-300"
+            [ngClass]="{ 'opacity-100 pointer-events-auto': showControls || !isPlaying, 'opacity-0 pointer-events-none': !showControls && isPlaying }"
+          >
+            <!-- Top Controls Overlay -->
+            <div class="flex items-center justify-between text-xs text-white/90">
+              <span class="font-semibold">{{ movie?.title }}</span>
+              <span class="text-[10px] bg-black/60 px-2 py-0.5 rounded font-mono">{{ activeSource?.quality || '720p' }}</span>
+            </div>
+
+            <!-- Big Center Play/Pause button when paused -->
+            <div *ngIf="!isPlaying" class="flex items-center justify-center">
+              <button
+                (click)="togglePlay()"
+                class="w-16 h-16 rounded-full bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center shadow-2xl transform hover:scale-110 transition-all"
+              >
+                <svg class="w-8 h-8 fill-current ml-1" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+            </div>
+            <div *ngIf="isPlaying" class="flex-grow"></div>
+
+            <!-- Bottom Controls Bar -->
+            <div class="space-y-2">
+              <!-- Progress Slider -->
+              <div class="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  [max]="duration || 100"
+                  [value]="currentTime"
+                  (input)="seek($event)"
+                  class="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-600"
+                />
+              </div>
+
+              <div class="flex items-center justify-between text-xs text-white">
+                <!-- Play/Pause & Time -->
+                <div class="flex items-center gap-3">
+                  <button (click)="togglePlay()" class="p-1 hover:text-red-500 transition-colors">
+                    <svg *ngIf="!isPlaying" class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg *ngIf="isPlaying" class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                  </button>
+
+                  <button (click)="skip(-10)" class="p-1 hover:text-red-400 transition-colors" title="Rewind 10s">
+                    <span class="text-[11px] font-bold">↺ 10s</span>
+                  </button>
+                  <button (click)="skip(10)" class="p-1 hover:text-red-400 transition-colors" title="Forward 10s">
+                    <span class="text-[11px] font-bold">10s ↻</span>
+                  </button>
+
+                  <!-- Time Display -->
+                  <span class="text-[11px] font-mono text-gray-300">
+                    {{ formatTime(currentTime) }} / {{ formatTime(duration) }}
+                  </span>
+
+                  <!-- Volume Controls -->
+                  <div class="flex items-center gap-1.5 ml-2">
+                    <button (click)="toggleMute()" class="p-1 hover:text-red-400 transition-colors">
+                      <span *ngIf="isMuted || volume === 0">🔇</span>
+                      <span *ngIf="!isMuted && volume > 0">🔊</span>
+                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      [value]="isMuted ? 0 : volume"
+                      (input)="setVolume($event)"
+                      class="w-16 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-red-600 hidden sm:inline-block"
+                    />
+                  </div>
+                </div>
+
+                <!-- Playback Speed & Fullscreen -->
+                <div class="flex items-center gap-2">
+                  <!-- Speed dropdown -->
+                  <div class="flex items-center gap-1 bg-gray-900/80 px-2 py-0.5 rounded border border-gray-700 text-[10px]">
+                    <button
+                      *ngFor="let rate of [0.75, 1, 1.25, 1.5]"
+                      (click)="setPlaybackRate(rate)"
+                      class="px-1 py-0.5 rounded hover:text-white"
+                      [ngClass]="{ 'text-red-400 font-bold': playbackRate === rate, 'text-gray-400': playbackRate !== rate }"
+                    >
+                      {{ rate }}x
+                    </button>
+                  </div>
+
+                  <button (click)="toggleFullscreen()" class="p-1 hover:text-red-400 transition-colors" title="Toggle Fullscreen">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- 2. Embed Playback: YouTube / Vimeo Iframe -->
+        <ng-container *ngIf="activeSource?.playbackType !== 'direct' && safeEmbedUrl">
+          <iframe
+            [src]="safeEmbedUrl"
+            class="w-full h-full"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          ></iframe>
+        </ng-container>
+      </div>
+
+      <!-- Playback Details & Multi-source Selector -->
+      <div class="p-4 sm:p-6 bg-gray-900/60 rounded-2xl border border-gray-800/80 mt-4 space-y-4">
+        <!-- Title and Metadata -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-800">
+          <div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-white">{{ movie?.title }}</h2>
+            <div class="flex items-center gap-3 text-xs text-gray-400 mt-1">
+              <span *ngIf="movie?.year">{{ movie?.year }}</span>
+              <span *ngIf="movie?.rating" class="text-amber-400">★ {{ movie?.rating?.toFixed(1) }}</span>
+              <span *ngIf="movie?.runtime">{{ movie?.runtime }} min</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Sources Switcher (if multiple exist) -->
+        <div *ngIf="sources.length > 1" class="space-y-2">
+          <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Available Playback Streams</h4>
+          <div class="flex gap-2 flex-wrap">
+            <button
+              *ngFor="let s of sources; let idx = index"
+              (click)="setSource(s)"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2"
+              [ngClass]="{
+                'bg-red-950/60 border-red-600 text-white shadow-md': activeSource?.id === s.id,
+                'bg-gray-950 border-gray-800 text-gray-400 hover:text-white hover:border-gray-700': activeSource?.id !== s.id
+              }"
+            >
+              <span>Server {{ idx + 1 }}</span>
+              <span *ngIf="s.quality" class="text-[10px] bg-black/60 px-1.5 py-0.5 rounded font-mono">{{ s.quality }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Synopsis -->
+        <p *ngIf="movie?.overview" class="text-xs sm:text-sm text-gray-300 leading-relaxed">
+          {{ movie?.overview }}
+        </p>
+      </div>
+    </div>
+  </main>
+</div>

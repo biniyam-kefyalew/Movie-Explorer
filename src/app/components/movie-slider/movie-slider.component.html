@@ -1,0 +1,74 @@
+<section class="my-8 relative group/section">
+  <!-- Section Header -->
+  <div class="flex items-end justify-between mb-4 px-4 md:px-8">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-xl" *ngIf="icon">{{ icon }}</span>
+        <h2 class="text-xl md:text-2xl font-bold text-white tracking-wide">
+          {{ title }}
+        </h2>
+      </div>
+      <p *ngIf="subtitle" class="text-xs md:text-sm text-gray-400 mt-0.5">
+        {{ subtitle }}
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a
+        *ngIf="viewAllLink"
+        [routerLink]="viewAllLink"
+        class="text-xs md:text-sm font-medium text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group/link"
+      >
+        <span>Explore all</span>
+        <span class="transform transition-transform group-hover/link:translate-x-1">→</span>
+      </a>
+
+      <!-- Slider Arrows (hidden on small touch devices) -->
+      <div class="hidden sm:flex items-center gap-1.5 ml-2">
+        <button
+          (click)="scrollLeft()"
+          aria-label="Previous items"
+          class="p-2 rounded-full bg-gray-900/80 hover:bg-red-600 text-gray-300 hover:text-white border border-gray-800 transition-colors shadow-md backdrop-blur-md"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          (click)="scrollRight()"
+          aria-label="Next items"
+          class="p-2 rounded-full bg-gray-900/80 hover:bg-red-600 text-gray-300 hover:text-white border border-gray-800 transition-colors shadow-md backdrop-blur-md"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Skeletons -->
+  <div
+    *ngIf="loading"
+    class="flex gap-4 overflow-x-auto no-scrollbar px-4 md:px-8 py-2"
+  >
+    <div
+      *ngFor="let i of [1, 2, 3, 4, 5, 6]"
+      class="flex-shrink-0 w-36 sm:w-44 md:w-52 aspect-[2/3] rounded-xl bg-gray-900 animate-pulse border border-gray-800"
+    ></div>
+  </div>
+
+  <!-- Scroll Container -->
+  <div
+    #scrollContainer
+    *ngIf="!loading"
+    class="flex gap-4 overflow-x-auto no-scrollbar px-4 md:px-8 py-2 scroll-smooth"
+  >
+    <div
+      *ngFor="let movie of movies"
+      class="flex-shrink-0 w-36 sm:w-44 md:w-52"
+    >
+      <app-movie-card [movie]="movie"></app-movie-card>
+    </div>
+  </div>
+</section>

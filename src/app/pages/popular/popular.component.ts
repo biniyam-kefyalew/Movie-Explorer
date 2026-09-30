@@ -1,24 +1,51 @@
-import { Component, OnInit } from '@angular/core';
-import { Movie } from '../../models/movie.model';
-import { MovieApiService } from '../../services/movie-api.service';
-import { MovieCardComponent } from '../../components/movie-card/movie-card.component';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MovieCardComponent } from '../../components/movie-card/movie-card.component';
+import { MovieApiService } from '../../services/movie-api.service';
+import { MoviePreview } from '../../models/movie.model';
 
 @Component({
   selector: 'app-popular',
-  imports: [MovieCardComponent, CommonModule],
+  standalone: true,
+  imports: [CommonModule, MovieCardComponent],
   templateUrl: './popular.component.html',
-  styleUrl: './popular.component.css',
+  styleUrls: ['./popular.component.css'],
 })
 export class PopularComponent implements OnInit {
-  movies: Movie[] = [];
-  constructor(private movieService: MovieApiService) {}
+  private movieApi = inject(MovieApiService);
+
+  movies: MoviePreview[] = [];
+  page = 1;
+  totalPages = 1;
+  isLoading = true;
+  isLoadingMore = false;
+
   ngOnInit(): void {
-    this.loadPopularMovies();
+    this.loadMovies(1);
   }
-  loadPopularMovies(): void {
-    this.movieService.getPopularMovies().subscribe((movies) => {
-      this.movies = movies || [];
+
+  loadMovies(page: number, append = false): void {
+    if (append) this.isLoadingMore = true;
+    else this.isLoading = true;
+
+    this.movieApi.getPopular(page).subscribe({
+      next: (res) => {
+        this.page = res.page;
+        this.totalPages = res.totalPages;
+        this.movies = append ? [...this.movies, ...res.results] : res.results;
+        this.isLoading = false;
+        this.isLoadingMore = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.isLoadingMore = false;
+      },
     });
+  }
+
+  loadMore(): void {
+    if (this.page < this.totalPages && !this.isLoadingMore) {
+      this.loadMovies(this.page + 1, true);
+    }
   }
 }

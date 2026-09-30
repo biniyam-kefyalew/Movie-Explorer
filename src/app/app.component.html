@@ -1,4 +1,7 @@
-<app-navigation-bar></app-navigation-bar>
-<div class="mt-16">
-  <router-outlet></router-outlet>
+<div class="min-h-screen bg-gray-950 flex flex-col justify-between text-gray-100">
+  <app-navigation-bar></app-navigation-bar>
+  <main class="mt-16 flex-grow">
+    <router-outlet></router-outlet>
+  </main>
+  <app-footer></app-footer>
 </div>

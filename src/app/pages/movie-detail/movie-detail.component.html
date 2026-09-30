@@ -1,117 +1,251 @@
-<!-- ✅ Show Loading Spinner -->
-<div *ngIf="isLoading" class="text-center text-lg font-bold py-6">
-  Loading movie details...
+<!-- Loading State -->
+<div *ngIf="isLoading" class="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-8">
+  <div class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+  <p class="text-sm font-semibold text-gray-300 mt-4 tracking-wide">Loading movie details & verified sources...</p>
 </div>
-<div *ngIf="!isLoading && movie" class="container mx-auto p-10">
-  <div *ngIf="movie" class="flex flex-col md:flex-row gap-6">
-    <img
-      [src]="'https://image.tmdb.org/t/p/w500' + movie.poster_path"
-      [alt]="movie.title"
-      class="w-full md:w-86 rounded-lg shadow-lg"
-    />
 
-    <div class="flex flex-col gap-4">
-      <h2 class="text-3xl font-bold">{{ movie.title }}</h2>
-      <p class="text-gray-600">
-        <strong>Release Date:</strong> {{ movie.release_date }}
-      </p>
-      <p class="text-gray-600"><strong>Genre:</strong> {{ getGenres() }}</p>
-      <p class="text-gray-600">
-        <strong>Runtime:</strong> {{ movie.runtime }} min
-      </p>
-      <p class="text-gray-600">
-        <strong>Overview:</strong> {{ movie.overview }}
-      </p>
-      <p class="text-gray-600">
-        <strong>IMDB Rating:</strong> ⭐ {{ movie.vote_average.toFixed(1) }} ({{
-          movie.vote_count
-        }}
-        votes)
-      </p>
-      <p class="text-gray-600">
-        <strong>Budget:</strong> {{ formatCurrency(movie.budget) }}
-      </p>
-      <p class="text-gray-600">
-        <strong>Revenue:</strong> {{ formatCurrency(movie.revenue) }}
-      </p>
-      <p class="text-gray-600">
-        <strong>Production:</strong> {{ getProductionCompanies() }}
-      </p>
-
-      <p *ngIf="movie.homepage" class="text-blue-500">
-        <a [href]="movie.homepage" target="_blank">Official Website</a>
-      </p>
-    </div>
-  </div>
-
-  <!-- ✅ Display Cast -->
-  <h3 class="text-2xl font-bold my-6">Top Cast</h3>
-  <div
-    *ngIf="hasCast()"
-    class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-screen md:max-h-96 overflow-auto"
-  >
-    <div *ngFor="let actor of movie?.credits?.cast ?? []" class="text-center">
+<!-- Main Movie Details Container -->
+<div *ngIf="!isLoading && movie" class="min-h-screen bg-gray-950 text-gray-100 pb-20">
+  <!-- Hero Backdrop Header -->
+  <div class="relative w-full min-h-[500px] md:min-h-[620px] overflow-hidden bg-gray-950">
+    <!-- Backdrop Image -->
+    <div class="absolute inset-0">
       <img
-        [src]="'https://image.tmdb.org/t/p/w200' + actor.profile_path"
-        [alt]="actor.name"
-        class="w-32 h-32 object-cover rounded-full mx-auto"
+        [src]="movie.backdropUrl || movie.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1600&auto=format&fit=crop'"
+        [alt]="movie.title"
+        class="w-full h-full object-cover object-center filter brightness-40 scale-105"
       />
-      <p class="mt-2 font-bold">{{ actor.name }}</p>
-      <p class="text-sm text-gray-600">{{ actor.character }}</p>
+      <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/80 to-transparent"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-950/60 to-transparent"></div>
+    </div>
+
+    <!-- Back Button -->
+    <button
+      (click)="goBack()"
+      class="absolute top-6 left-4 sm:left-8 z-30 px-3.5 py-1.5 rounded-xl bg-black/60 hover:bg-gray-800 text-xs font-semibold text-gray-200 backdrop-blur-md border border-white/10 transition-all flex items-center gap-1.5"
+    >
+      <span>←</span> Back
+    </button>
+
+    <!-- Header Content: Poster + Summary -->
+    <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-28 pb-12">
+      <div class="flex flex-col md:flex-row gap-8 items-start">
+        <!-- Poster Card with Shadow -->
+        <div class="w-48 sm:w-60 md:w-72 flex-shrink-0 mx-auto md:mx-0 aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border border-gray-800/80 bg-gray-900">
+          <img
+            [src]="movie.posterUrl || 'assets/image/icon.png'"
+            [alt]="movie.title"
+            class="w-full h-full object-cover"
+          />
+        </div>
+
+        <!-- Movie Details Column -->
+        <div class="flex-grow space-y-4 max-w-3xl">
+          <!-- Badges Row -->
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <span
+              *ngIf="movie.freePlayable"
+              class="bg-emerald-600/90 text-white text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 backdrop-blur-md"
+            >
+              <span class="w-2 h-2 rounded-full bg-emerald-200 animate-pulse"></span>
+              VERIFIED FREE STREAM
+            </span>
+
+            <span
+              *ngIf="movie.rating"
+              class="bg-black/60 backdrop-blur-md text-amber-400 text-xs font-bold px-3 py-1 rounded-lg border border-white/10 flex items-center gap-1"
+            >
+              <span>⭐</span> {{ movie.rating }} / 10
+              <span class="text-gray-400 font-normal text-[11px]">({{ movie.voteCount.toLocaleString() }} votes)</span>
+            </span>
+
+            <span *ngIf="movie.year" class="text-xs text-gray-300 font-medium px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg">
+              {{ movie.year }}
+            </span>
+
+            <span *ngIf="movie.runtime" class="text-xs text-gray-300 font-medium px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg">
+              {{ formatRuntime(movie.runtime) }}
+            </span>
+          </div>
+
+          <!-- Title & Tagline -->
+          <div>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+              {{ movie.title }}
+            </h1>
+            <p *ngIf="movie.originalTitle && movie.originalTitle !== movie.title" class="text-xs sm:text-sm text-gray-400 mt-1 italic">
+              Original: "{{ movie.originalTitle }}"
+            </p>
+            <p *ngIf="movie.tagline" class="text-sm md:text-base text-gray-300 font-medium italic mt-2 text-cinema-gradient">
+              "{{ movie.tagline }}"
+            </p>
+          </div>
+
+          <!-- Genres -->
+          <div class="flex items-center gap-2 flex-wrap pt-1">
+            <span
+              *ngFor="let g of movie.genres"
+              class="text-xs text-gray-300 px-3 py-1 bg-white/5 backdrop-blur-md rounded-lg border border-white/10"
+            >
+              {{ g.name }}
+            </span>
+          </div>
+
+          <!-- Overview -->
+          <div class="pt-2">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Overview</h3>
+            <p class="text-sm md:text-base text-gray-300 leading-relaxed">
+              {{ movie.overview || 'No synopsis available for this film.' }}
+            </p>
+          </div>
+
+          <!-- Metadata Quick Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 text-xs border-t border-gray-800/80">
+            <div *ngIf="movie.director">
+              <span class="text-gray-500 block">Director</span>
+              <span class="text-gray-200 font-medium">{{ movie.director }}</span>
+            </div>
+            <div *ngIf="movie.releaseDate">
+              <span class="text-gray-500 block">Release Date</span>
+              <span class="text-gray-200 font-medium">{{ movie.releaseDate }}</span>
+            </div>
+            <div *ngIf="movie.spokenLanguages && movie.spokenLanguages.length > 0">
+              <span class="text-gray-500 block">Language</span>
+              <span class="text-gray-200 font-medium">{{ movie.spokenLanguages.join(', ') }}</span>
+            </div>
+            <div *ngIf="movie.budget && movie.budget > 0">
+              <span class="text-gray-500 block">Budget</span>
+              <span class="text-gray-200 font-medium">{{ formatCurrency(movie.budget) }}</span>
+            </div>
+            <div *ngIf="movie.revenue && movie.revenue > 0">
+              <span class="text-gray-500 block">Box Office</span>
+              <span class="text-gray-200 font-medium">{{ formatCurrency(movie.revenue) }}</span>
+            </div>
+            <div *ngIf="movie.productionCompanies && movie.productionCompanies.length > 0">
+              <span class="text-gray-500 block">Production</span>
+              <span class="text-gray-200 font-medium truncate block">{{ movie.productionCompanies[0].name }}</span>
+            </div>
+          </div>
+
+          <!-- Primary CTA Action Buttons -->
+          <div class="pt-6 flex items-center gap-3.5 flex-wrap">
+            <!-- 1. Playable Movie Source Exists: Display 'Watch Now' -->
+            <button
+              *ngIf="hasWatchOption"
+              (click)="onWatchNowClick()"
+              class="px-7 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm md:text-base flex items-center gap-2.5 shadow-xl shadow-red-950/50 transform hover:-translate-y-0.5 transition-all"
+            >
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>Watch Now</span>
+            </button>
+
+            <!-- 2. Watch Trailer button (if trailer available) -->
+            <button
+              *ngIf="safeTrailerUrl"
+              (click)="scrollToTrailer()"
+              class="px-5 py-3.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-gray-700 text-gray-200 hover:text-white text-sm font-semibold backdrop-blur-md flex items-center gap-2 transition-all"
+            >
+              <svg class="w-5 h-5 text-red-500 fill-current" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span>Watch Trailer</span>
+            </button>
+
+
+
+            <!-- Favorite Watchlist Toggle Button -->
+            <button
+              (click)="toggleFavorite()"
+              class="px-4 py-3.5 rounded-xl border border-gray-700 hover:border-red-600 text-gray-200 text-sm font-semibold backdrop-blur-md flex items-center gap-2 transition-all"
+              [ngClass]="{ 'bg-red-950/40 text-red-400 border-red-800': isFavorite, 'bg-gray-900/80': !isFavorite }"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="w-4 h-4"
+                [ngClass]="{ 'text-red-500': isFavorite, 'text-gray-400': !isFavorite }"
+              >
+                <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"/>
+              </svg>
+              <span>{{ isFavorite ? 'Saved to Watchlist' : 'Add to Watchlist' }}</span>
+            </button>
+
+            <!-- Share Button -->
+            <button
+              (click)="shareMovie()"
+              class="p-3.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white transition-all"
+              title="Share movie link"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
+
+            <span *ngIf="copySuccess" class="text-xs text-emerald-400 animate-in fade-in">
+              Link copied!
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ✅ Display Only One Fullscreen Trailer -->
-  <h3 class="text-2xl font-bold my-6">Trailer</h3>
-  <div *ngIf="safeTrailerUrl">
-    <iframe
-      width="100%"
-      height="500"
-      [src]="safeTrailerUrl"
-      frameborder="0"
-      allowfullscreen
-    ></iframe>
-  </div>
-
-  <!-- ✅ Display Reviews -->
-  <h3 class="text-2xl font-bold my-6">Reviews</h3>
-  <div *ngIf="hasReviews(); else noReviews" class="max-h-96 overflow-y-auto">
-    <div
-      *ngFor="let review of movie?.reviews?.results ?? []"
-      class="p-4 border-b border-gray-300"
-    >
-      <p class="text-lg font-semibold">{{ review.author }}</p>
-      <p class="text-gray-700">{{ review.content.slice(0, 450) }}...</p>
-    </div>
-  </div>
-  <ng-template #noReviews>
-    <p class="text-gray-600">No reviews available.</p>
-  </ng-template>
-
-  <!-- ✅ Display Related Movies -->
-  <h3 class="text-2xl font-bold my-6">Related Movies</h3>
-  <div
-    *ngIf="hasSimilar(); else noSimilar"
-    class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"
-  >
-    <div
-      *ngFor="let similarMovie of movie?.similar?.results ?? []"
-      class="text-center"
-    >
-      <a [routerLink]="['/movie', similarMovie.id]">
+  <!-- Cast & Crew Section -->
+  <div *ngIf="movie.cast && movie.cast.length > 0" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+    <h3 class="text-xl font-bold text-white mb-4">Top Billed Cast</h3>
+    <div class="flex gap-4 overflow-x-auto no-scrollbar pb-3">
+      <div
+        *ngFor="let actor of movie.cast.slice(0, 14)"
+        class="flex-shrink-0 w-28 sm:w-32 bg-gray-900/80 rounded-xl p-2.5 border border-gray-800/80 text-center flex flex-col items-center"
+      >
         <img
-          [src]="'https://image.tmdb.org/t/p/w200' + similarMovie.poster_path"
-          [alt]="similarMovie.title"
-          class="w-32 h-48 object-cover rounded-lg mx-auto"
+          [src]="actor.profilePath || 'assets/image/icon.png'"
+          [alt]="actor.name"
+          class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full bg-gray-950 border border-gray-700 shadow-md"
         />
-        <p class="mt-2 font-bold">{{ similarMovie.title }}</p>
-        <p class="text-sm text-gray-600">
-          ⭐ {{ similarMovie.vote_average.toFixed(1) }}
-        </p>
-      </a>
+        <h4 class="text-xs font-bold text-white mt-2.5 line-clamp-1" [title]="actor.name">{{ actor.name }}</h4>
+        <p class="text-[11px] text-gray-400 mt-0.5 line-clamp-1" [title]="actor.character">{{ actor.character }}</p>
+      </div>
     </div>
   </div>
-  <ng-template #noSimilar>
-    <p class="text-gray-600">No related movies available.</p>
-  </ng-template>
+
+  <!-- Official Trailer Video Player Section -->
+  <div id="trailer-section" *ngIf="safeTrailerUrl" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🎬</span>
+        <h3 class="text-xl font-bold text-white">Official Trailer</h3>
+      </div>
+    </div>
+    <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black border border-gray-800 shadow-2xl">
+      <iframe
+        [src]="safeTrailerUrl"
+        class="w-full h-full"
+        title="Official Movie Trailer"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+
+
+
+  <!-- Recommended & Similar Movies -->
+  <div *ngIf="movie.recommended && movie.recommended.length > 0" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-14">
+    <h3 class="text-xl font-bold text-white mb-4">Recommended Movies</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <app-movie-card *ngFor="let rec of movie.recommended.slice(0, 6)" [movie]="rec"></app-movie-card>
+    </div>
+  </div>
+
+  <div *ngIf="movie.similar && movie.similar.length > 0" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-14">
+    <h3 class="text-xl font-bold text-white mb-4">More Like This</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+      <app-movie-card *ngFor="let sim of movie.similar.slice(0, 6)" [movie]="sim"></app-movie-card>
+    </div>
+  </div>
 </div>

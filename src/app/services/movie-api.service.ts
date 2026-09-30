@@ -1,137 +1,109 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { forkJoin, Observable } from 'rxjs';
-import { Movie } from '../models/movie.model';
-import { MovieDetail } from '../models/movie-detail.model';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import {
+  NormalizedMovie,
+  MoviePreview,
+  PaginatedResult,
+  MovieGenre,
+  MovieSource,
+  VideoItem,
+  WatchProvidersByRegion,
+} from '../models/movie.model';
 import { environment } from '../../environments/environment';
-import { map, tap } from 'rxjs/operators';
 
-interface MovieSearchResponse {
-  results: Movie[];
-  total_results: number;
-  total_pages: number;
+export interface MovieFilterParams {
+  genre?: string;
+  year?: string;
+  minRating?: string;
+  maxRating?: string;
+  sortBy?: string;
+  freeOnly?: boolean;
+}
+
+export interface SourceResolutionResult {
+  sources: MovieSource[];
+  freePlayable: boolean;
+  hasFullMovie: boolean;
+  watchAction: 'watch_direct' | 'watch_embed' | 'where_to_watch' | 'none';
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class MovieApiService {
-  private apiKey = environment.tmdbApiKey; // TMDb API Key
-  private apiUrl = 'https://api.themoviedb.org/3';
+  private baseUrl = environment.apiBaseUrl || '/api';
 
   constructor(private http: HttpClient) {}
 
-  // 🔍 Search for movies by title
-  searchMovies(query: string): Observable<MovieSearchResponse> {
-    return this.http
-      .get<MovieSearchResponse>(`${this.apiUrl}/search/movie`, {
-        params: {
-          api_key: this.apiKey,
-          query,
-          language: 'en-US',
-          include_adult: 'false',
-        },
-      })
-      .pipe(
-        tap((response) => console.log('Full API Response:', response)) // ✅ Logs full response
-      );
+  getHeroMovies(): Observable<MoviePreview[]> {
+    return this.http.get<MoviePreview[]>(`${this.baseUrl}/movies/hero`);
   }
 
-  // 📌 Get Movie Details by ID
-  getMovieDetails(movieId: string): Observable<MovieDetail> {
-    return this.http.get<MovieDetail>(`${this.apiUrl}/movie/${movieId}`, {
-      params: {
-        api_key: this.apiKey,
-        language: 'en-US',
-        append_to_response:
-          'credits,videos,images,reviews,similar,recommendations',
-      },
-    });
+  getLatest(page = 1, filters: MovieFilterParams = {}): Observable<PaginatedResult<MoviePreview>> {
+    let params = new HttpParams().set('page', page.toString());
+    if (filters.genre) params = params.set('genre', filters.genre);
+    if (filters.year) params = params.set('year', filters.year);
+    if (filters.minRating) params = params.set('minRating', filters.minRating);
+    if (filters.maxRating) params = params.set('maxRating', filters.maxRating);
+    if (filters.sortBy) params = params.set('sortBy', filters.sortBy);
+    if (filters.freeOnly) params = params.set('freeOnly', 'true');
+
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/latest`, { params });
   }
 
-  // ✅ Get Latest Movies
-  getLatestMovies(): Observable<Movie[]> {
-    const totalPagesToFetch = 25; // 25 pages * 20 movies per page = 500 movies
-    const requests: Observable<MovieSearchResponse>[] = [];
-
-    for (let page = 1; page <= totalPagesToFetch; page++) {
-      requests.push(
-        this.http.get<MovieSearchResponse>(`${this.apiUrl}/discover/movie`, {
-          params: {
-            api_key: this.apiKey,
-            language: 'en-US',
-            sort_by: 'release_date.desc', // Latest movies first
-            include_adult: 'false',
-            include_video: 'false',
-            page: page.toString(),
-            'release_date.lte': new Date().toISOString().split('T')[0], // Only past releases
-          },
-        })
-      );
-    }
-
-    return forkJoin(requests).pipe(
-      map((responses) => responses.flatMap((response) => response.results)) // Merge results from all pages
-    );
+  getTrending(page = 1, timeWindow = 'day'): Observable<PaginatedResult<MoviePreview>> {
+    const params = new HttpParams().set('page', page.toString()).set('timeWindow', timeWindow);
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/trending`, { params });
   }
 
-  // ✅ Get Popular Movies
-  getPopularMovies(): Observable<Movie[]> {
-    const totalPagesToFetch = 25;
-    const requests: Observable<MovieSearchResponse>[] = [];
-    for (let page = 1; page <= totalPagesToFetch; page++) {
-      requests.push(
-        this.http.get<MovieSearchResponse>(`${this.apiUrl}/movie/popular`, {
-          params: {
-            api_key: this.apiKey,
-            language: 'en-US',
-            page: page.toString(),
-          },
-        })
-      );
-    }
-    return forkJoin(requests).pipe(
-      map((responses) => responses.flatMap((response) => response.results)) // Merge results from all pages
-    );
+  getPopular(page = 1): Observable<PaginatedResult<MoviePreview>> {
+    const params = new HttpParams().set('page', page.toString());
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/popular`, { params });
   }
 
-  // ✅ Get Top Rated Movies
-  getTopRatedMovies(): Observable<Movie[]> {
-    const totalPagesToFetch = 25;
-    const requests: Observable<MovieSearchResponse>[] = [];
-    for (let page = 1; page <= totalPagesToFetch; page++) {
-      requests.push(
-        this.http.get<MovieSearchResponse>(`${this.apiUrl}/movie/top_rated`, {
-          params: {
-            api_key: this.apiKey,
-            language: 'en-US',
-            page: page.toString(),
-          },
-        })
-      );
-    }
-    return forkJoin(requests).pipe(
-      map((responses) => responses.flatMap((response) => response.results)) // Merge results from all pages
-    );
+  getTopRated(page = 1): Observable<PaginatedResult<MoviePreview>> {
+    const params = new HttpParams().set('page', page.toString());
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/top-rated`, { params });
   }
 
-  // ✅ Get Upcoming Movies
-  getUpcomingMovies(): Observable<Movie[]> {
-    const totalPagesToFetch = 25;
-    const requests: Observable<MovieSearchResponse>[] = [];
-    for (let page = 1; page <= totalPagesToFetch; page++) {
-      requests.push(
-        this.http.get<MovieSearchResponse>(`${this.apiUrl}/movie/upcoming`, {
-          params: {
-            api_key: this.apiKey,
-            language: 'en-US',
-            page: page.toString(),
-          },
-        })
-      );
-    }
-    return forkJoin(requests).pipe(
-      map((responses) => responses.flatMap((response) => response.results)) // Merge results from all pages
-    );
+  getNowPlaying(page = 1): Observable<PaginatedResult<MoviePreview>> {
+    const params = new HttpParams().set('page', page.toString());
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/now-playing`, { params });
+  }
+
+  getUpcoming(page = 1): Observable<PaginatedResult<MoviePreview>> {
+    const params = new HttpParams().set('page', page.toString());
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/upcoming`, { params });
+  }
+
+  getFreeMovies(page = 1): Observable<PaginatedResult<MoviePreview>> {
+    const params = new HttpParams().set('page', page.toString());
+    return this.http.get<PaginatedResult<MoviePreview>>(`${this.baseUrl}/movies/free-movies`, { params });
+  }
+
+  getGenres(): Observable<MovieGenre[]> {
+    return this.http.get<MovieGenre[]>(`${this.baseUrl}/movies/genres`);
+  }
+
+  search(query: string, page = 1): Observable<PaginatedResult<any>> {
+    const params = new HttpParams().set('q', query).set('page', page.toString());
+    return this.http.get<PaginatedResult<any>>(`${this.baseUrl}/movies/search`, { params });
+  }
+
+  getMovieDetails(idOrSlug: string | number): Observable<NormalizedMovie> {
+    return this.http.get<NormalizedMovie>(`${this.baseUrl}/movies/${idOrSlug}`);
+  }
+
+  getMovieSources(idOrSlug: string | number): Observable<SourceResolutionResult> {
+    return this.http.get<SourceResolutionResult>(`${this.baseUrl}/movies/${idOrSlug}/sources`);
+  }
+
+  getMovieTrailers(idOrSlug: string | number): Observable<VideoItem[]> {
+    return this.http.get<VideoItem[]>(`${this.baseUrl}/movies/${idOrSlug}/trailers`);
+  }
+
+  getMovieProviders(idOrSlug: string | number): Observable<WatchProvidersByRegion | null> {
+    return this.http.get<WatchProvidersByRegion | null>(`${this.baseUrl}/movies/${idOrSlug}/providers`);
   }
 }

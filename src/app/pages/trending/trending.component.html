@@ -1,0 +1,78 @@
+<div class="min-h-screen bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Page Header & Search Filter -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-800">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">🔥</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Trending Movies
+          </h1>
+          <span *ngIf="totalResults > 0" class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded-full font-medium border border-gray-700">
+            {{ totalResults.toLocaleString() }} movies
+          </span>
+        </div>
+        <p class="text-xs sm:text-sm text-gray-400 mt-1">
+          The most popular movies being watched and discussed right now.
+        </p>
+      </div>
+
+      <!-- Search within results -->
+      <div class="relative flex-grow sm:w-64 max-w-xs">
+        <input
+          type="text"
+          [(ngModel)]="searchFilter"
+          placeholder="Filter trending..."
+          class="w-full pl-9 pr-4 py-2 bg-gray-900 border border-gray-700/80 rounded-xl text-xs sm:text-sm text-gray-200 placeholder-gray-500 focus:border-red-500 focus:outline-none"
+        />
+        <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div *ngIf="isLoading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 mt-8">
+      <div *ngFor="let s of [1,2,3,4,5,6,7,8,9,10]" class="bg-gray-900 rounded-2xl overflow-hidden animate-pulse border border-gray-800">
+        <div class="aspect-[2/3] bg-gray-800"></div>
+        <div class="p-3.5 space-y-2">
+          <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+          <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movie Grid -->
+    <div *ngIf="!isLoading && displayedMovies.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 mt-8">
+      <app-movie-card
+        *ngFor="let movie of displayedMovies"
+        [movie]="movie"
+      ></app-movie-card>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && displayedMovies.length === 0" class="py-20 text-center">
+      <div class="text-4xl mb-3">🔍</div>
+      <h3 class="text-lg font-bold text-white">No trending movies match your search</h3>
+      <p class="text-sm text-gray-400 mt-1">Try clearing your filter to view all trending titles.</p>
+      <button
+        (click)="searchFilter = ''"
+        class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition-colors"
+      >
+        Clear Filter
+      </button>
+    </div>
+
+    <!-- Load More Pagination Button -->
+    <div *ngIf="!isLoading && page < totalPages" class="mt-12 text-center">
+      <button
+        (click)="loadMore()"
+        [disabled]="isLoadingMore"
+        class="px-8 py-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-red-600 text-white font-semibold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2 mx-auto disabled:opacity-50"
+      >
+        <span *ngIf="isLoadingMore" class="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></span>
+        <span>{{ isLoadingMore ? 'Loading More Movies...' : 'Load More Movies' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
