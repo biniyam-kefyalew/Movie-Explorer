@@ -32,27 +32,36 @@ export function extractIdFromSlug(slugOrId: string): number {
 
 export class TMDBAdapter {
   private apiKey: string;
+  private accessToken: string;
 
   constructor() {
     this.apiKey = config.tmdbApiKey;
+    this.accessToken = config.tmdbAccessToken;
   }
 
   private async fetchWithRetry(url: string, params: Record<string, string> = {}, retries = 3): Promise<any> {
     const urlObj = new URL(url);
-    urlObj.searchParams.set('api_key', this.apiKey);
+    if (this.apiKey) {
+      urlObj.searchParams.set('api_key', this.apiKey);
+    }
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined && value !== null && value !== '') {
         urlObj.searchParams.set(key, value);
       }
     }
 
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+
     let delay = 500;
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         const response = await fetch(urlObj.toString(), {
-          headers: {
-            'Accept': 'application/json',
-          },
+          headers,
         });
 
         if (response.status === 429) {

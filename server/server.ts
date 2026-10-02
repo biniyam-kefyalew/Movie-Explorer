@@ -31,7 +31,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 // Health check
-app.get('/api/health', (_req: Request, res: Response) => {
+app.get(['/api/health', '/health'], (_req: Request, res: Response) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -45,25 +45,29 @@ app.get('/api/health', (_req: Request, res: Response) => {
   });
 });
 
-// API Routes
+// API Routes (mounted with and without /api prefix for Vercel serverless rewrite compatibility)
 app.use('/api/movies', movieRoutes);
+app.use('/movies', movieRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 
-// Static Angular frontend serving for production
-const distDir = path.resolve(__dirname, '../dist/movie-search-app/browser');
-if (fs.existsSync(distDir)) {
-  app.use(express.static(distDir));
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (!req.path.startsWith('/api') && req.method === 'GET') {
-      res.sendFile(path.join(distDir, 'index.html'));
-    } else {
-      next();
-    }
-  });
+// Static Angular frontend serving for local production runs (Vercel serves static via CDN)
+if (!process.env['VERCEL']) {
+  const distDir = path.resolve(process.cwd(), 'dist/movie-search-app/browser');
+  if (fs.existsSync(distDir)) {
+    app.use(express.static(distDir));
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (!req.path.startsWith('/api') && req.method === 'GET') {
+        res.sendFile(path.join(distDir, 'index.html'));
+      } else {
+        next();
+      }
+    });
+  }
 }
 
 // 404 handler for unmatched API routes
-app.use('/api', (_req: Request, res: Response) => {
+app.use(['/api', '/api/*'], (_req: Request, res: Response) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
