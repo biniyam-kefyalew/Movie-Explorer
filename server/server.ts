@@ -67,7 +67,7 @@ if (!process.env['VERCEL']) {
 }
 
 // 404 handler for unmatched API routes
-app.use(['/api', '/api/*'], (_req: Request, res: Response) => {
+app.use('/api', (_req: Request, res: Response) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
