@@ -14,6 +14,7 @@ import { WatchComponent } from './pages/watch/watch.component';
 import { FavoritesComponent } from './pages/favorites/favorites.component';
 import { HistoryComponent } from './pages/history/history.component';
 import { AdminComponent } from './pages/admin/admin.component';
+import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent, title: 'Movie Explorer — Discover & Stream Movies Legally' },
@@ -33,5 +34,6 @@ export const routes: Routes = [
   { path: 'portal/ops/internal/gateway', component: AdminComponent, title: 'System Portal — Movie Explorer' },
   { path: 'portal/ops/internal/login', redirectTo: 'portal/ops/internal/gateway', pathMatch: 'full' },
   { path: 'admin', redirectTo: 'portal/ops/internal/gateway', pathMatch: 'full' },
-  { path: '**', redirectTo: '' },
+  { path: '404', component: NotFoundComponent, title: '404 — Scene Not Found — Movie Explorer' },
+  { path: '**', component: NotFoundComponent, title: '404 — Page Not Found — Movie Explorer' },
 ];
